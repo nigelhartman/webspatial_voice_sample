@@ -1,0 +1,311 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base reset ───────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Dark background by default (desktop browser).
+   Overridden to transparent when html.is-spatial is active (XR/standalone). */
+body {
+  margin: 0;
+  background-color: #0d0d0d;
+  color: #ffffff;
+  min-height: 100svh;
+}
+
+/* ── WebSpatial transparent window (XR/standalone only) ─────────────────── */
+/* html.is-spatial is added by main.tsx via JS only when running as a PWA.
+   In regular browsers this block never applies. */
+
+html.is-spatial {
+  background-color: transparent;
+  --xr-background-material: transparent;
+
+  body {
+    background-color: transparent;
+  }
+}
+
+/* ── Rainbow fog animations ──────────────────────────────────────────────── */
+
+@keyframes rainbow-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fog-pulse {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.06); }
+}
+
+@keyframes grey-breathe {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.55; }
+}
+
+/* ── Mic panel (shared between XR and desktop) ───────────────────────────── */
+
+.voice-mic-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+/* "ElevenLabs" heading */
+.elevenlabs-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  text-align: center;
+  margin: 0;
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+}
+
+/* Container holds both the fog ring and the button, stacked */
+.mic-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+}
+
+/* Fog glow ring — sits behind the button, blurred */
+.fog-ring {
+  position: absolute;
+  inset: -24px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Rainbow fog (active) */
+.fog-ring--rainbow {
+  background: conic-gradient(
+    from 0deg,
+    #ff006e,
+    #fb5607,
+    #ffbe0b,
+    #06d6a0,
+    #118ab2,
+    #8338ec,
+    #ff006e
+  );
+  filter: blur(22px);
+  animation:
+    rainbow-spin 4s linear infinite,
+    fog-pulse 2s ease-in-out infinite;
+  opacity: 0.85;
+}
+
+/* Grey fog (inactive) */
+.fog-ring--grey {
+  background: radial-gradient(
+    circle,
+    rgba(180, 180, 180, 0.55) 0%,
+    rgba(100, 100, 100, 0.15) 70%,
+    transparent 100%
+  );
+  filter: blur(16px);
+  animation: grey-breathe 3s ease-in-out infinite;
+}
+
+/* The circular mic button */
+.mic-circle {
+  position: relative;
+  z-index: 1;
+  width: 160px;
+  height: 160px;
+  /* Explicit px — XR renderer may not compute 50% correctly without pixel dims */
+  border-radius: 80px;
+  /* cursor: pointer signals interactivity to the XR system hover layer */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mic-circle:not(.mic-circle--disabled):hover {
+  transform: scale(1.06);
+}
+
+.mic-circle--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mic-circle--active {
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 0 24px rgba(131, 56, 236, 0.6),
+    0 0 48px rgba(255, 0, 110, 0.35);
+}
+
+.mic-circle--idle {
+  background: rgba(140, 140, 140, 0.18);
+  border: 2px solid rgba(180, 180, 180, 0.25);
+  box-shadow: 0 0 16px rgba(120, 120, 120, 0.2);
+}
+
+.mic-icon {
+  font-size: 3rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.status-text {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+  text-align: center;
+  margin: 0;
+}
+
+.error-text {
+  color: #fc8181;
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: 320px;
+  margin: 0;
+}
+
+/* ── XR layout: voice-page-root (just the mic panel) ────────────────────── */
+
+.voice-page-root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  background: transparent;
+}
+
+/* ── WebSpatial spatial properties (XR only) ─────────────────────────────── */
+
+html.is-spatial {
+  /* History card glass material (XR history panel).
+     mic-circle spatial properties are set via inline style in VoicePage.tsx
+     since the XR renderer reads material/shape from inline style only. */
+  .history-card {
+    --xr-background-material: translucent;
+    position: relative;
+  }
+}
+
+/* ── Desktop layout: side-by-side ────────────────────────────────────────── */
+
+.voice-page-desktop {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 100svh;
+  gap: 0;
+}
+
+.voice-page-desktop .voice-mic-panel {
+  flex: 0 0 360px;
+  justify-content: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.desktop-history-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  gap: 1rem;
+  min-width: 0;
+  max-width: 600px;
+}
+
+/* ── Shared history styles (desktop inline + XR HistoryPage) ─────────────── */
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.history-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.history-clear-btn {
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.history-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.history-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9rem;
+}
+
+.history-feed {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-right: 4px;
+}
+
+.history-card {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.history-card-time {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-card-text {
+  font-size: 0.95rem;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── XR HistoryPage layout ───────────────────────────────────────────────── */
+
+.history-page-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  padding: 1.5rem;
+  gap: 1rem;
+  background: transparent;
+}
