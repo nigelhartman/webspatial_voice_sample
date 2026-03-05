@@ -6,7 +6,11 @@ A WebSpatial app that records your voice, transcribes it with ElevenLabs Speech-
 
 ## Video
 
-<!-- Add demo video here -->
+
+
+https://github.com/user-attachments/assets/c1faa1cc-c084-42c8-b12f-543c52b22a83
+
+
 
 ---
 
@@ -123,41 +127,3 @@ npm run build
 ```
 
 Output goes to `dist/`. Serve it with any static host.
-
----
-
-## Project structure
-
-```
-src/
-  main.tsx          — entry point; detects XR mode, routes /history
-  xrMode.ts         — detects standalone (XR) vs desktop browser
-  VoicePage.tsx     — main panel: title + mic button + inline history (desktop)
-  HistoryPage.tsx   — /history route: second WebSpatial scene (XR only)
-  index.css         — spatial styles, fog animations, layout
-public/
-  manifest.json     — PWA manifest (required for PICO installability)
-  icon-*.png        — PWA icons
-.env.example        — copy to .env and add your API key
-```
-
----
-
-## How XR mode works
-
-`xrMode.ts` detects `(display-mode: standalone)` — true when running as an installed PWA in the PICO emulator, false in a regular browser tab. In XR mode:
-
-- `html.is-spatial` is added to the document → transparent WebSpatial window
-- A second scene opens at `/history` via `window.open` + `initScene`
-- Transcripts sync to the history panel via `BroadcastChannel` + `localStorage`
-
----
-
-## Tech stack
-
-| | |
-|---|---|
-| Framework | React 18 + Vite |
-| XR SDK | `@webspatial/react-sdk` + `@webspatial/core-sdk` |
-| STT | ElevenLabs Scribe v2 (`/v1/speech-to-text`) |
-| Styling | Tailwind CSS + custom CSS animations |
